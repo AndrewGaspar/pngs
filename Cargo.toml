@@ -1,0 +1,4 @@
+[package]
+name = "png-header"
+version = "0.1.0"
+authors = ["Andrew Gaspar <andrew.gaspar@outlook.com>"]
