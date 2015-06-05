@@ -56,7 +56,7 @@ macro_rules! iotry {
     })
 }
 
-pub fn try_read(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngParseError> {
+pub fn fill_buffer(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngParseError> {
     let bytes_read = iotry!(buffer.read(&mut bytes[..]));
 
     if bytes_read != bytes.len() {
@@ -101,7 +101,7 @@ pub fn read_png_raw_from_file(path: &str) ->  Result<Vec<ManagedRawChunk>, PngPa
 
         let length = util::bytes_as_be_u32(&word);
 
-        try!(try_read(&mut f, &mut word));
+        try!(fill_buffer(&mut f, &mut word));
 
         let chunk_type = word.clone();
 
@@ -109,9 +109,9 @@ pub fn read_png_raw_from_file(path: &str) ->  Result<Vec<ManagedRawChunk>, PngPa
 
         assert_eq!(length as usize, chunk.len());
 
-        try!(try_read(&mut f, &mut chunk));
+        try!(fill_buffer(&mut f, &mut chunk));
 
-        try!(try_read(&mut f, &mut word));
+        try!(fill_buffer(&mut f, &mut word));
 
         let crc = util::bytes_as_be_u32(&word);
 
