@@ -40,7 +40,7 @@ impl RawChunk for ManagedRawChunk {
     }
 }
 
-pub enum PngError {
+pub enum PngParseError {
     IoError(io::Error),
     IncorrectSignature,
     UnexpectedEnd,
@@ -51,16 +51,16 @@ macro_rules! iotry {
     ($expr:expr) => (match $expr {
         ::std::result::Result::Ok(val) => val,
         ::std::result::Result::Err(err) => {
-            return Err($crate::raw::PngError::IoError(err));
+            return Err($crate::raw::PngParseError::IoError(err));
         }  
     })
 }
 
-pub fn try_read(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngError> {
+pub fn try_read(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngParseError> {
     let bytes_read = iotry!(buffer.read(&mut bytes[..]));
 
     if bytes_read != bytes.len() {
-        return Err(PngError::UnexpectedEnd);
+        return Err(PngParseError::UnexpectedEnd);
     }
 
     return Ok(());
@@ -76,7 +76,7 @@ pub fn make_vec<T : Clone>(size: usize, default_value: T) -> Vec<T> {
     list
 }
 
-pub fn read_png_raw_from_file(path: &str) ->  Result<Vec<ManagedRawChunk>, PngError> {
+pub fn read_png_raw_from_file(path: &str) ->  Result<Vec<ManagedRawChunk>, PngParseError> {
 
     let mut chunks = Vec::new();
 
@@ -87,7 +87,7 @@ pub fn read_png_raw_from_file(path: &str) ->  Result<Vec<ManagedRawChunk>, PngEr
     let size = iotry!(f.read(&mut signature));
 
     if size != 8 || signature != png_sig {
-        return Err(PngError::IncorrectSignature);
+        return Err(PngParseError::IncorrectSignature);
     }
 
     loop {
