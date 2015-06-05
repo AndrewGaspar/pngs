@@ -1,4 +1,7 @@
 [package]
-name = "png-header"
+name = "png-decoder"
 version = "0.1.0"
 authors = ["Andrew Gaspar <andrew.gaspar@outlook.com>"]
+
+[dependencies]
+argparse="0.1.0"
