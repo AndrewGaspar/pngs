@@ -1,7 +1,7 @@
 extern crate argparse;
-extern crate png_decoder;
+extern crate pngs;
 
-use png_decoder::raw::RawChunk;
+use pngs::raw::RawChunk;
 
 use argparse::{ArgumentParser, Store};
 
@@ -31,7 +31,7 @@ fn parse_args() -> Arguments {
 fn main() {
     let args = parse_args();
 
-    for chunk in png_decoder::raw::read_png_raw_from_file(&args.file).ok().expect("Failed to parse png!") {
+    for chunk in pngs::raw::read_png_raw_from_file(&args.file).ok().expect("Failed to parse png!") {
         println!("Chunk type: {}, Chunk length: {}", std::str::from_utf8(&chunk.chunk_type()).ok().expect("Not utf8?!"), chunk.chunk_data().len());
     }
 }

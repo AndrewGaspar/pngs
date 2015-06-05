@@ -1,5 +1,5 @@
 [root]
-name = "png-decoder"
+name = "pngs"
 version = "0.1.0"
 dependencies = [
  "argparse 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
