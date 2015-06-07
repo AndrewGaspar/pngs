@@ -66,7 +66,7 @@ fn fill_buffer(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngParseError>
     return Ok(());
 }
 
-pub fn make_vec<T : Clone>(size: usize, default_value: T) -> Vec<T> {
+fn make_vec<T : Clone>(size: usize, default_value: T) -> Vec<T> {
     let mut list = Vec::with_capacity(size);
 
     for _ in 0..size {
