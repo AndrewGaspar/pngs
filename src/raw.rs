@@ -91,6 +91,16 @@ fn ensure_valid_chunk_type(chunk_type: ChunkTypePrimitive) -> Result<()> {
     Ok(())
 }
 
+fn ensure_valid_signature(sig: SignatureTypePrimitive) -> Result<()> {
+
+    let png_sig = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
+
+    if sig != png_sig {
+        return Err(PngParseError::IncorrectSignature(sig));
+    }
+
+    Ok(())
+}
 
 macro_rules! opt_try {
     ($expr:expr) => (match $expr {
@@ -122,16 +132,13 @@ impl RawChunks {
         }
 
         let mut signature = [0; 8];
-        let png_sig = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
-        let size = iotry!(self.reader.read(&mut signature));
+        try!(fill_buffer(&mut self.reader, &mut signature));
 
-        if size != 8 || signature != png_sig {
-            return Err(PngParseError::IncorrectSignature(signature.clone()));
-        }
+        try!(ensure_valid_signature(signature));
 
         self.has_signature = true;
 
-        return Ok(());
+        Ok(())
     }
 
     fn try_next(&mut self) -> Option<Result<ManagedRawChunk>> {
