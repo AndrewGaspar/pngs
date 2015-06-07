@@ -83,7 +83,7 @@ pub fn read_png_raw_from_file(path: &str) ->  Result<Vec<ManagedRawChunk>, PngPa
     let mut f = iotry!(File::open(&path));
 
     let mut signature = [0; 8];
-    let png_sig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    let png_sig = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
     let size = iotry!(f.read(&mut signature));
 
     if size != 8 || signature != png_sig {
