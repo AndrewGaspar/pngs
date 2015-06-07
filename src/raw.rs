@@ -56,7 +56,7 @@ macro_rules! iotry {
     })
 }
 
-pub fn fill_buffer(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngParseError> {
+fn fill_buffer(buffer: &mut Read, bytes: &mut [u8]) -> Result<(), PngParseError> {
     let bytes_read = iotry!(buffer.read(&mut bytes[..]));
 
     if bytes_read != bytes.len() {
