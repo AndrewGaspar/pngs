@@ -31,7 +31,11 @@ fn parse_args() -> Arguments {
 fn main() {
     let args = parse_args();
 
-    for chunk in pngs::raw::read_png_raw_from_file(&args.file).ok().expect("Failed to parse png!") {
-        println!("Chunk type: {}, Chunk length: {}", std::str::from_utf8(&chunk.chunk_type()).ok().expect("Not utf8?!"), chunk.chunk_data().len());
+    for chunk_result in pngs::raw::read_png_raw_from_file(&args.file).ok().expect("Failed to open png iterator!") {
+        let chunk = chunk_result.ok().expect("Failed to read chunk.");
+
+        println!("Chunk type: {}, Chunk length: {}", 
+            std::str::from_utf8(&chunk.chunk_type()).ok().expect("Not utf8?!"), 
+            chunk.chunk_data().len());
     }
 }
