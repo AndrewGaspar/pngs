@@ -52,17 +52,11 @@ pub enum PngParseError {
 
 pub type Result<T> = ::std::result::Result<T, PngParseError>;
 
-macro_rules! iotry {
-    ($expr:expr) => (match $expr {
-        ::std::result::Result::Ok(val) => val,
-        ::std::result::Result::Err(err) => {
-            return Err($crate::raw::PngParseError::IoError(err));
-        }  
-    })
-}
-
 fn fill_buffer(buffer: &mut Read, bytes: &mut [u8]) -> Result<()> {
-    let bytes_read = iotry!(buffer.read(&mut bytes[..]));
+    let bytes_read = match buffer.read(&mut bytes[..]) {
+        Ok(len) => len,
+        Err(err) => { return Err(PngParseError::IoError(err)); },
+    };
 
     if bytes_read != bytes.len() {
         return Err(PngParseError::UnexpectedEnd);
@@ -102,15 +96,6 @@ fn ensure_valid_signature(sig: SignatureTypePrimitive) -> Result<()> {
     Ok(())
 }
 
-macro_rules! opt_try {
-    ($expr:expr) => (match $expr {
-        ::std::result::Result::Ok(val) => val,
-        ::std::result::Result::Err(err) => {
-            return Some(Err(err));
-        }  
-    })
-}
-
 pub struct RawChunks {
     reader: Box<Read>,
     has_signature: bool,
@@ -133,7 +118,6 @@ impl RawChunks {
 
         let mut signature = [0; 8];
         try!(fill_buffer(&mut self.reader, &mut signature));
-
         try!(ensure_valid_signature(signature));
 
         self.has_signature = true;
@@ -142,7 +126,12 @@ impl RawChunks {
     }
 
     fn try_next(&mut self) -> Option<Result<ManagedRawChunk>> {
-        opt_try!(self.ensure_signed());
+        match self.ensure_signed() {
+            Err(err) => {
+                return Some(Err(err));
+            },
+            _ => {},
+        };
 
         let mut word = [0; 4];
         
@@ -157,29 +146,31 @@ impl RawChunks {
             return None;
         }
 
-        let length = util::bytes_as_be_u32(&word);
+        Some((|| {
+            let length = util::bytes_as_be_u32(&word);
+            
+            try!(fill_buffer(&mut self.reader, &mut word));
 
-        opt_try!(fill_buffer(&mut self.reader, &mut word));
+            let chunk_type = word.clone();
 
-        let chunk_type = word.clone();
+            try!(ensure_valid_chunk_type(chunk_type));
 
-        opt_try!(ensure_valid_chunk_type(chunk_type));
+            let mut chunk = make_vec(length as usize, 0u8);
 
-        let mut chunk = make_vec(length as usize, 0u8);
+            assert_eq!(length as usize, chunk.len());
 
-        assert_eq!(length as usize, chunk.len());
+            try!(fill_buffer(&mut self.reader, &mut chunk));
 
-        opt_try!(fill_buffer(&mut self.reader, &mut chunk));
+            try!(fill_buffer(&mut self.reader, &mut word));
 
-        opt_try!(fill_buffer(&mut self.reader, &mut word));
+            let crc = util::bytes_as_be_u32(&word);
 
-        let crc = util::bytes_as_be_u32(&word);
-
-        Some(Ok(ManagedRawChunk {
-            chunk_type: chunk_type,
-            chunk_data: chunk,
-            crc: crc
-        }))
+            Ok(ManagedRawChunk {
+                chunk_type: chunk_type,
+                chunk_data: chunk,
+                crc: crc
+            })
+        })())
     }
 }
 
