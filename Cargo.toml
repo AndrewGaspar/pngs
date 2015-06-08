@@ -2,6 +2,3 @@
 name = "pngs"
 version = "0.1.0"
 authors = ["Andrew Gaspar <andrew.gaspar@outlook.com>"]
-
-[dependencies]
-argparse="0.1.0"

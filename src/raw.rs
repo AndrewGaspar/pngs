@@ -26,7 +26,7 @@ pub struct ManagedRawChunk {
 
 impl RawChunk for ManagedRawChunk {
     fn length(&self) -> u32 {
-        self.chunk_type.len() as u32
+        self.chunk_data.len() as u32
     }
 
     fn chunk_type(&self) -> ChunkTypePrimitive {
@@ -85,8 +85,8 @@ fn ensure_valid_chunk_type(chunk_type: ChunkTypePrimitive) -> Result<()> {
     Ok(())
 }
 
-fn ensure_valid_signature(sig: SignatureTypePrimitive) -> Result<()> {
 
+fn ensure_valid_signature(sig: SignatureTypePrimitive) -> Result<()> {
     let png_sig = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
 
     if sig != png_sig {
@@ -200,8 +200,47 @@ impl Iterator for RawChunks {
     }
 }
 
+pub fn read_png_raw(reader: Box<Read>) -> RawChunks {
+    RawChunks::new(reader)
+}
+
 pub fn read_png_raw_from_file(path: &str) -> ::std::io::Result<RawChunks> {
     let file = try!(File::open(&path));
 
-    Ok(RawChunks::new(Box::new(file)))
+    Ok(read_png_raw(Box::new(file)))
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn is_valid_chunk_type(chunk_type: & ChunkTypePrimitive) -> bool {
+        super::ensure_valid_chunk_type(chunk_type.clone()).is_ok()
+    }
+
+    #[test]
+    fn standard_chunks() {
+        let specified_chunks 
+            = [b"IHDR",
+               b"PLTE",
+               b"IDAT",
+               b"IEND",
+               b"gBKD",
+               b"cHRM",
+               b"gAMA",
+               b"hIST",
+               b"pHYs",
+               b"sBIT",
+               b"tEXt",
+               b"tIME",
+               b"tRNS",
+               b"zTXt",
+             ];
+
+        for spec in specified_chunks.iter() {
+            assert!(is_valid_chunk_type(spec));
+        }
+    }
 }
