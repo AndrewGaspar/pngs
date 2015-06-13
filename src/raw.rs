@@ -129,12 +129,9 @@ impl<R: Read> RawChunks<R> {
     }
 
     fn try_next(&mut self) -> Option<Result<ManagedRawChunk>> {
-        match self.ensure_signed() {
-            Err(err) => {
-                return Some(Err(err));
-            },
-            _ => {},
-        };
+        if let Err(err) = self.ensure_signed() {
+            return Some(Err(err));
+        }
 
         let mut word = [0; 4];
         
