@@ -1,4 +1,5 @@
 use std::clone::Clone;
+use std::convert::From;
 use std::fs::File;
 use std::io;
 use std::io::Read;
@@ -49,13 +50,16 @@ pub enum PngParseError {
     ParseError
 }
 
+impl From<io::Error> for PngParseError {
+    fn from(err: io::Error) -> PngParseError {
+        PngParseError::IoError(err)
+    }
+}
+
 pub type Result<T> = ::std::result::Result<T, PngParseError>;
 
 fn fill_buffer(buffer: &mut Read, bytes: &mut [u8]) -> Result<()> {
-    let bytes_read = match buffer.read(&mut bytes[..]) {
-        Ok(len) => len,
-        Err(err) => { return Err(PngParseError::IoError(err)); },
-    };
+    let bytes_read = try!(buffer.read(&mut bytes[..]));
 
     if bytes_read != bytes.len() {
         return Err(PngParseError::UnexpectedEnd);
