@@ -1,4 +1,3 @@
-use std::boxed::Box;
 use std::clone::Clone;
 use std::fs::File;
 use std::io;
@@ -96,14 +95,14 @@ fn ensure_valid_signature(sig: SignatureTypePrimitive) -> Result<()> {
     Ok(())
 }
 
-pub struct RawChunks {
-    reader: Box<Read>,
+pub struct RawChunks<R: Read> {
+    reader: R,
     has_signature: bool,
     has_finished: bool,
 }
 
-impl RawChunks {
-    fn new(reader: Box<Read>) -> RawChunks {
+impl<R: Read> RawChunks<R> {
+    fn new(reader: R) -> RawChunks<R> {
         RawChunks {
             reader: reader,
             has_signature: false,
@@ -174,7 +173,7 @@ impl RawChunks {
     }
 }
 
-impl Iterator for RawChunks {
+impl<R: Read> Iterator for RawChunks<R> {
     type Item = Result<ManagedRawChunk>;
 
     fn next(&mut self) -> Option<Result<ManagedRawChunk>> {
@@ -200,14 +199,14 @@ impl Iterator for RawChunks {
     }
 }
 
-pub fn read_png_raw(reader: Box<Read>) -> RawChunks {
+pub fn read_png_raw<R: Read>(reader: R) -> RawChunks<R> {
     RawChunks::new(reader)
 }
 
-pub fn read_png_raw_from_file(path: &str) -> ::std::io::Result<RawChunks> {
+pub fn read_png_raw_from_file(path: &str) -> ::std::io::Result<RawChunks<File>> {
     let file = try!(File::open(&path));
 
-    Ok(read_png_raw(Box::new(file)))
+    Ok(read_png_raw(file))
 }
 
 

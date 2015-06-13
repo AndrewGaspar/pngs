@@ -22,7 +22,7 @@ fn known_png() {
 
     let cursor = Cursor::new(&sample_png[..]);
 
-    let chunks: Vec<_> = ::pngs::raw::read_png_raw(Box::new(cursor)).collect();
+    let chunks: Vec<_> = ::pngs::raw::read_png_raw(cursor).collect();
 
     assert_eq!(6, chunks.len());
 
